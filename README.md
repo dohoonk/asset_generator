@@ -1,12 +1,20 @@
 # 🎨 Anime Asset Generator
 
-A beautiful web application for generating anime-style images using AI models hosted on Replicate.
+A beautiful web application for generating anime-style images using AI models hosted on Replicate. **Built specifically for Visual Novel game developers** who need to quickly generate character sprites, backgrounds, and scene assets for their games.
 
 ![Anime Asset Generator UI](./screenshot.png)
 
+## 🎮 Perfect for Visual Novel Development
+
+This tool is designed to help visual novel creators:
+- Generate **character portraits** and sprites with consistent anime styling
+- Create **background scenes** for different game locations
+- Produce **CG illustrations** for key story moments
+- Rapidly prototype visual assets during game development
+
 ## ✨ Features
 
-- **10 Curated AI Models** - Choose from popular anime-focused models including Animagine XL, Ghibli Diffusion, Flux Schnell, and more
+- **9 Curated AI Models** - Choose from top image generation models including Flux, SDXL, Seedream, and more
 - **Customizable Prompts** - Enter detailed prompts with optional negative prompts to refine your results
 - **Reference Image Upload** - Upload style reference images (PNG/JPG, up to 10MB)
 - **Multiple Dimensions** - Select from 512×512, 768×1024, 1024×768, or 1024×1024
@@ -37,7 +45,7 @@ npm install
 
 3. Create a `.env.local` file in the root directory:
 ```bash
-REPLICATE_API_TOKEN=your_replicate_api_token_here
+REPLICATE_API_KEY=your_replicate_api_key_here
 ```
 
 Get your API token from [Replicate Account Settings](https://replicate.com/account/api-tokens).
@@ -63,18 +71,17 @@ npm run dev
 
 ## 🎨 Available Models
 
-| Model | Style | Speed |
-|-------|-------|-------|
-| Animagine XL 3.1 | Modern anime | Medium |
-| Anything V4 | Classic anime | Fast |
-| Proteus v0.3 | Artistic anime | Fast |
-| Ghibli Diffusion | Studio Ghibli | Medium |
-| 90s Anime Style | Retro | Fast |
-| Flux Schnell | Versatile | Fast |
-| SDXL | Photorealistic | Medium |
-| Realistic Vision | Semi-realistic | Medium |
-| DreamShaper XL | Fantasy | Fast |
-| Playground v2.5 | Aesthetic | Medium |
+| Model | Style | Speed | Best For |
+|-------|-------|-------|----------|
+| Flux Schnell | Versatile | Fast | Quick iterations |
+| Flux Dev | Versatile | Medium | High-quality assets |
+| Flux Pro 1.1 | Premium | Medium | Final production art |
+| SDXL | Photorealistic | Medium | Realistic backgrounds |
+| Stable Diffusion | Versatile | Fast | General purpose |
+| Seedream 3 | Photorealistic | Medium | Best overall quality |
+| Ideogram v3 Turbo | Creative | Fast | Images with text |
+| Recraft v3 SVG | Vector | Fast | Scalable graphics |
+| Playground v2.5 | Aesthetic | Medium | Stylized art |
 
 ## 🛠️ Tech Stack
 
@@ -116,7 +123,7 @@ anime-asset-generator/
 
 1. Push your code to GitHub
 2. Connect your repository to [Vercel](https://vercel.com)
-3. Add the `REPLICATE_API_TOKEN` environment variable in Vercel's dashboard
+3. Add the `REPLICATE_API_KEY` environment variable in Vercel's dashboard
 4. Deploy!
 
 ## 📝 License

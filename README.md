@@ -14,7 +14,7 @@ This tool is designed to help visual novel creators:
 
 ## ✨ Features
 
-- **9 Curated AI Models** - Choose from top image generation models including Flux, SDXL, Seedream, and more
+- **6 Anime-Focused AI Models** - Choose from dedicated anime models like Animagine XL, plus versatile models like Flux
 - **Customizable Prompts** - Enter detailed prompts with optional negative prompts to refine your results
 - **Reference Image Upload** - Upload style reference images (PNG/JPG, up to 10MB)
 - **Multiple Dimensions** - Select from 512×512, 768×1024, 1024×768, or 1024×1024
@@ -73,15 +73,18 @@ npm run dev
 
 | Model | Style | Speed | Best For |
 |-------|-------|-------|----------|
-| Flux Schnell | Versatile | Fast | Quick iterations |
-| Flux Dev | Versatile | Medium | High-quality assets |
-| Flux Pro 1.1 | Premium | Medium | Final production art |
-| SDXL | Photorealistic | Medium | Realistic backgrounds |
-| Stable Diffusion | Versatile | Fast | General purpose |
-| Seedream 3 | Photorealistic | Medium | Best overall quality |
-| Ideogram v3 Turbo | Creative | Fast | Images with text |
-| Recraft v3 SVG | Vector | Fast | Scalable graphics |
-| Playground v2.5 | Aesthetic | Medium | Stylized art |
+| **Animagine XL 3.1** | Modern Anime | Medium | Character sprites & portraits |
+| **Animagine XL 4.0** | Modern Anime | Medium | High-quality anime with better anatomy |
+| Flux Schnell | Versatile | Fast | Quick anime iterations |
+| Flux Dev | Versatile | Medium | Detailed anime art |
+| SDXL | Versatile | Medium | Backgrounds & scenes |
+| Playground v2.5 | Aesthetic | Medium | Stylized anime art |
+
+### 🎯 Anime-Optimized Prompts
+
+All prompts are automatically enhanced with anime quality tags:
+- **Prefix:** `masterpiece, best quality, very aesthetic, absurdres, anime style`
+- **Negative prompt:** Automatically excludes realistic/3D/western styles
 
 ## 🛠️ Tech Stack
 

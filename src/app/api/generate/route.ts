@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Replicate from "replicate";
-import { MODELS } from "@/types";
+import { MODELS, ANIME_PROMPT_PREFIX, ANIME_NEGATIVE_PROMPT } from "@/types";
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_KEY,
@@ -33,16 +33,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build the input based on the model
+    // Build the input based on the model with anime-focused prompts
     const input: Record<string, unknown> = {
-      prompt: `anime style, ${prompt}`,
+      prompt: `${ANIME_PROMPT_PREFIX}${prompt}`,
       width,
       height,
     };
 
-    // Add negative prompt if provided
+    // Add negative prompt - combine user's with anime defaults
     if (negativePrompt) {
-      input.negative_prompt = negativePrompt;
+      input.negative_prompt = `${ANIME_NEGATIVE_PROMPT}, ${negativePrompt}`;
+    } else {
+      input.negative_prompt = ANIME_NEGATIVE_PROMPT;
     }
 
     // Add reference image if provided and model supports it
@@ -53,10 +55,8 @@ export async function POST(request: NextRequest) {
     // Handle different models' parameter names
     const isFluxModel = model.replicateId.startsWith("black-forest-labs/flux");
     const isSDXLModel = model.replicateId.startsWith("stability-ai/sdxl");
-    const isSDModel = model.replicateId.startsWith("stability-ai/stable-diffusion");
-    const isSeedream = model.replicateId.startsWith("bytedance/seedream");
-    const isIdeogram = model.replicateId.startsWith("ideogram-ai/");
-    const isRecraft = model.replicateId.startsWith("recraft-ai/");
+    const isAnimagineModel = model.replicateId.includes("animagine");
+    const isPlaygroundModel = model.replicateId.includes("playground");
     
     if (isFluxModel) {
       // Flux models use aspect_ratio instead of width/height
@@ -65,55 +65,28 @@ export async function POST(request: NextRequest) {
       delete input.width;
       delete input.height;
       delete input.negative_prompt; // Flux doesn't support negative prompts
-    } else if (isSDXLModel) {
-      // SDXL model
+    } else if (isAnimagineModel) {
+      // Animagine models - optimized for anime
       input.num_outputs = numOutputs;
-      if (negativePrompt) {
-        input.negative_prompt = `lowres, bad anatomy, bad hands, ${negativePrompt}`;
-      } else {
-        input.negative_prompt = "lowres, bad anatomy, bad hands, text, error, missing fingers";
-      }
-    } else if (isSDModel) {
-      // Classic Stable Diffusion
+      // Animagine works best with these specific quality tags already in prompt
+    } else if (isSDXLModel || isPlaygroundModel) {
+      // SDXL and Playground models
       input.num_outputs = numOutputs;
-      if (!negativePrompt) {
-        input.negative_prompt = "lowres, bad anatomy, bad hands, text, error";
-      }
-    } else if (isSeedream || isIdeogram) {
-      // Seedream and Ideogram models
-      input.num_images = numOutputs;
-      delete input.num_outputs;
-      delete input.negative_prompt;
-    } else if (isRecraft) {
-      // Recraft SVG model - simpler params
-      delete input.num_outputs;
-      delete input.negative_prompt;
-      delete input.width;
-      delete input.height;
     } else {
-      // Default handling for most models
+      // Default handling for other models
       input.num_outputs = numOutputs;
-      if (!negativePrompt) {
-        input.negative_prompt = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality";
-      }
     }
 
     // Generate images
     const outputs: string[] = [];
     
-    // Check if model supports multiple outputs
-    // Flux supports up to 4, Recraft and some others only do 1 at a time
-    const singleOutputOnly = isRecraft;
-    const maxBatchSize = isFluxModel ? 4 : singleOutputOnly ? 1 : numOutputs;
+    // Check if model supports multiple outputs - Flux supports up to 4
+    const maxBatchSize = isFluxModel ? 4 : numOutputs;
     const batchCount = Math.ceil(numOutputs / maxBatchSize);
 
     for (let i = 0; i < batchCount; i++) {
       const batchSize = Math.min(maxBatchSize, numOutputs - outputs.length);
-      if (isSeedream || isIdeogram) {
-        input.num_images = batchSize;
-      } else if (!isRecraft) {
-        input.num_outputs = batchSize;
-      }
+      input.num_outputs = batchSize;
 
       try {
         const output = await replicate.run(model.replicateId as `${string}/${string}` | `${string}/${string}:${string}`, {

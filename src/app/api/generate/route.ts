@@ -52,7 +52,11 @@ export async function POST(request: NextRequest) {
 
     // Handle different models' parameter names
     const isFluxModel = model.replicateId.startsWith("black-forest-labs/flux");
-    const isSD35Model = model.replicateId.includes("stable-diffusion-3.5");
+    const isSDXLModel = model.replicateId.startsWith("stability-ai/sdxl");
+    const isSDModel = model.replicateId.startsWith("stability-ai/stable-diffusion");
+    const isSeedream = model.replicateId.startsWith("bytedance/seedream");
+    const isIdeogram = model.replicateId.startsWith("ideogram-ai/");
+    const isRecraft = model.replicateId.startsWith("recraft-ai/");
     
     if (isFluxModel) {
       // Flux models use aspect_ratio instead of width/height
@@ -61,22 +65,33 @@ export async function POST(request: NextRequest) {
       delete input.width;
       delete input.height;
       delete input.negative_prompt; // Flux doesn't support negative prompts
-    } else if (isSD35Model) {
-      // SD 3.5 models
-      input.num_outputs = numOutputs;
-      input.output_format = "webp";
-      if (negativePrompt) {
-        input.negative_prompt = negativePrompt;
-      }
-    } else if (model.replicateId === "stability-ai/sdxl") {
+    } else if (isSDXLModel) {
+      // SDXL model
       input.num_outputs = numOutputs;
       if (negativePrompt) {
         input.negative_prompt = `lowres, bad anatomy, bad hands, ${negativePrompt}`;
       } else {
         input.negative_prompt = "lowres, bad anatomy, bad hands, text, error, missing fingers";
       }
+    } else if (isSDModel) {
+      // Classic Stable Diffusion
+      input.num_outputs = numOutputs;
+      if (!negativePrompt) {
+        input.negative_prompt = "lowres, bad anatomy, bad hands, text, error";
+      }
+    } else if (isSeedream || isIdeogram) {
+      // Seedream and Ideogram models
+      input.num_images = numOutputs;
+      delete input.num_outputs;
+      delete input.negative_prompt;
+    } else if (isRecraft) {
+      // Recraft SVG model - simpler params
+      delete input.num_outputs;
+      delete input.negative_prompt;
+      delete input.width;
+      delete input.height;
     } else {
-      // Default handling for most models (anime models, dreamshaper, etc.)
+      // Default handling for most models
       input.num_outputs = numOutputs;
       if (!negativePrompt) {
         input.negative_prompt = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality";
@@ -86,16 +101,22 @@ export async function POST(request: NextRequest) {
     // Generate images
     const outputs: string[] = [];
     
-    // Check if model supports multiple outputs - Flux models support up to 4
-    const maxBatchSize = isFluxModel ? 4 : numOutputs;
+    // Check if model supports multiple outputs
+    // Flux supports up to 4, Recraft and some others only do 1 at a time
+    const singleOutputOnly = isRecraft;
+    const maxBatchSize = isFluxModel ? 4 : singleOutputOnly ? 1 : numOutputs;
     const batchCount = Math.ceil(numOutputs / maxBatchSize);
 
     for (let i = 0; i < batchCount; i++) {
       const batchSize = Math.min(maxBatchSize, numOutputs - outputs.length);
-      input.num_outputs = batchSize;
+      if (isSeedream || isIdeogram) {
+        input.num_images = batchSize;
+      } else if (!isRecraft) {
+        input.num_outputs = batchSize;
+      }
 
       try {
-        const output = await replicate.run(model.replicateId as `${string}/${string}`, {
+        const output = await replicate.run(model.replicateId as `${string}/${string}` | `${string}/${string}:${string}`, {
           input,
         });
 

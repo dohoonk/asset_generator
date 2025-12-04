@@ -195,3 +195,6 @@ export default function ResultsGrid({ images, isLoading, loadingCount }: Results
   );
 }
 
+
+
+

@@ -1,65 +1,199 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useCallback } from "react";
+import { Model, Dimension, GeneratedImage, HistoryBatch, MODELS, DIMENSIONS } from "@/types";
+import ModelSelector from "@/components/ModelSelector";
+import PromptInput from "@/components/PromptInput";
+import ImageUpload from "@/components/ImageUpload";
+import OptionsSelector from "@/components/OptionsSelector";
+import GenerateButton from "@/components/GenerateButton";
+import ResultsGrid from "@/components/ResultsGrid";
+import HistoryDrawer from "@/components/HistoryDrawer";
 
 export default function Home() {
+  // Form state
+  const [selectedModel, setSelectedModel] = useState<Model>(MODELS[0]);
+  const [prompt, setPrompt] = useState("");
+  const [negativePrompt, setNegativePrompt] = useState("");
+  const [referenceImage, setReferenceImage] = useState<string | null>(null);
+  const [dimension, setDimension] = useState<Dimension>(DIMENSIONS[3]); // 1024x1024 default
+  const [batchCount, setBatchCount] = useState(1);
+
+  // Generation state
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentImages, setCurrentImages] = useState<GeneratedImage[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  // History state
+  const [history, setHistory] = useState<HistoryBatch[]>([]);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  const handleGenerate = useCallback(async () => {
+    if (!prompt.trim()) {
+      setError("Please enter a prompt");
+      return;
+    }
+
+    setError(null);
+    setIsLoading(true);
+    setCurrentImages([]);
+
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          modelId: selectedModel.id,
+          prompt: prompt.trim(),
+          negativePrompt: negativePrompt.trim() || undefined,
+          referenceImage: referenceImage || undefined,
+          width: dimension.width,
+          height: dimension.height,
+          numOutputs: batchCount,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate images");
+      }
+
+      const newImages: GeneratedImage[] = data.images.map((url: string, i: number) => ({
+        id: `${Date.now()}-${i}`,
+        url,
+        prompt: prompt.trim(),
+        modelName: data.model,
+        timestamp: Date.now(),
+        width: dimension.width,
+        height: dimension.height,
+      }));
+
+      setCurrentImages(newImages);
+
+      // Add to history
+      const batch: HistoryBatch = {
+        id: `batch-${Date.now()}`,
+        images: newImages,
+        prompt: prompt.trim(),
+        modelName: data.model,
+        timestamp: Date.now(),
+      };
+      setHistory((prev) => [batch, ...prev]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedModel, prompt, negativePrompt, referenceImage, dimension, batchCount]);
+
+  const handleSelectBatch = (batch: HistoryBatch) => {
+    setCurrentImages(batch.images);
+  };
+
+  const canGenerate = prompt.trim().length > 0;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen">
+      {/* Header */}
+      <header className="sticky top-0 z-30 bg-[var(--background)]/80 backdrop-blur-md border-b border-[var(--border)]">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">🎨</span>
+            <div>
+              <h1 className="text-xl font-bold text-[var(--foreground)]">
+                Anime Asset Generator
+              </h1>
+              <p className="text-xs text-[var(--muted)]">
+                Create beautiful anime images with AI
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsHistoryOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-xl hover:bg-[var(--surface-hover)] transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="hidden sm:inline">History</span>
+            {history.length > 0 && (
+              <span className="bg-[var(--primary)] text-white text-xs px-2 py-0.5 rounded-full">
+                {history.length}
+              </span>
+            )}
+          </button>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        <div className="space-y-6">
+          {/* Generation Form */}
+          <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6 space-y-6 shadow-sm">
+            <ModelSelector
+              selectedModel={selectedModel}
+              onSelect={setSelectedModel}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+            <PromptInput
+              prompt={prompt}
+              negativePrompt={negativePrompt}
+              onPromptChange={setPrompt}
+              onNegativePromptChange={setNegativePrompt}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <ImageUpload
+                image={referenceImage}
+                onImageChange={setReferenceImage}
+              />
+              <OptionsSelector
+                dimension={dimension}
+                batchCount={batchCount}
+                onDimensionChange={setDimension}
+                onBatchCountChange={setBatchCount}
+              />
+            </div>
+
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm animate-fade-in">
+                {error}
+              </div>
+            )}
+
+            <GenerateButton
+              onClick={handleGenerate}
+              disabled={!canGenerate}
+              isLoading={isLoading}
+            />
+          </div>
+
+          {/* Results */}
+          <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6 shadow-sm">
+            <ResultsGrid
+              images={currentImages}
+              isLoading={isLoading}
+              loadingCount={batchCount}
+            />
+          </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-[var(--border)] py-6 mt-12">
+        <div className="max-w-4xl mx-auto px-4 text-center text-sm text-[var(--muted)]">
+          <p>Powered by Replicate AI Models</p>
+        </div>
+      </footer>
+
+      {/* History Drawer */}
+      <HistoryDrawer
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        history={history}
+        onSelectBatch={handleSelectBatch}
+      />
     </div>
   );
 }

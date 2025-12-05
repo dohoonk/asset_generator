@@ -149,6 +149,20 @@ export async function POST(request: NextRequest) {
         // Only log the error message, NOT the full error object (which contains API keys in headers)
         const errorMessage = modelError instanceof Error ? modelError.message : "Unknown error";
         console.error(`Error with model ${model.replicateId}: ${errorMessage}`);
+        
+        // Return specific error messages for common issues
+        if (errorMessage.includes("could not find a face")) {
+          return NextResponse.json(
+            { error: "No face detected in your image. Please upload a clear photo with a visible face for InstantID." },
+            { status: 400 }
+          );
+        }
+        if (errorMessage.includes("redux_image is required")) {
+          return NextResponse.json(
+            { error: "Please upload a reference image for Flux Redux." },
+            { status: 400 }
+          );
+        }
         // Continue with other batches if one fails
       }
     }

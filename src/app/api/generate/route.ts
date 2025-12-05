@@ -61,9 +61,11 @@ export async function POST(request: NextRequest) {
       input.aspect_ratio = width === height ? "1:1" : width > height ? "16:9" : "9:16";
     } else if (isPhotoMakerStyle && referenceImage) {
       // PhotoMaker Style: Character + style transfer
+      // Valid styles: "(No style)", "Cinematic", "Disney Charactor", "Digital Art", 
+      // "Photographic (Default)", "Fantasy art", "Neonpunk", "Enhance", "Comic book", "Lowpoly", "Line art"
       input.input_image = referenceImage;
       input.prompt = `img, ${ANIME_PROMPT_PREFIX}same person, ${prompt}`;
-      input.style_name = "Anime";
+      input.style_name = "Comic book"; // Closest to anime style
       input.num_outputs = Math.min(numOutputs, 4);
       input.num_steps = 50;
       input.style_strength_ratio = 35;

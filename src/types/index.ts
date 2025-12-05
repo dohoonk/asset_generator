@@ -66,7 +66,7 @@ export const MODELS: Model[] = [
     id: "photomaker-style",
     name: "PhotoMaker Style",
     replicateId: "tencentarc/photomaker-style:467d062309da518648ba89d226490e02b8ed09b5abc15026e54e31c5a8cd0769",
-    description: "Character + style transfer (anime, 3D, etc)",
+    description: "Character + comic/illustration style",
     style: "Character + Style",
     speed: "medium",
     supportsImage: true,

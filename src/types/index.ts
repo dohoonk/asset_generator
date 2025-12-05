@@ -43,26 +43,35 @@ export interface Dimension {
 }
 
 export const MODELS: Model[] = [
-  // === ANIME SPECIFIC MODELS (Recommended) ===
+  // === ANIME SPECIFIC MODELS (Verified Working) ===
   {
     id: "animagine-xl-31",
     name: "Animagine XL 3.1",
-    replicateId: "cjwbw/animagine-xl-3.1",
+    replicateId: "cjwbw/animagine-xl-3.1:6afe2e6b27dad2d6f480b59195c221884b6acc589ff4d05ff0e5fc058690fbb9",
     description: "Best anime model - high quality characters",
     style: "Modern Anime",
     speed: "medium",
     supportsImage: false,
   },
   {
-    id: "animagine-xl-40",
-    name: "Animagine XL 4.0",
-    replicateId: "aisha-ai-official/animagine-xl-4.0",
-    description: "Latest anime model - improved anatomy",
-    style: "Modern Anime",
-    speed: "medium",
+    id: "anything-v4",
+    name: "Anything V4",
+    replicateId: "cjwbw/anything-v4.0:42a996d39a96aedc57b2e0aa8105dea39c9c89d9d266caf6bb4327a1c191b061",
+    description: "Versatile anime style generator",
+    style: "Classic Anime",
+    speed: "fast",
     supportsImage: false,
   },
-  // === FLUX MODELS (Versatile - works great with anime prompts) ===
+  {
+    id: "dreamshaper-xl",
+    name: "DreamShaper XL",
+    replicateId: "lucataco/dreamshaper-xl-turbo:0a1710e0187b01a255302738ca0158ff02a22f4638679533e111082f9dd1b615",
+    description: "Fantasy and dreamy anime styles",
+    style: "Fantasy Anime",
+    speed: "fast",
+    supportsImage: false,
+  },
+  // === FLUX MODELS (Official - no version needed) ===
   {
     id: "flux-schnell",
     name: "Flux Schnell",

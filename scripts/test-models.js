@@ -15,10 +15,29 @@ const replicate = new Replicate({
 
 // Models must match src/types/index.ts
 const MODELS = [
+  // Character reference models (require image)
   { 
     id: "flux-redux", 
-    name: "Flux Redux (Character Ref)",
+    name: "Flux Redux",
     replicateId: "black-forest-labs/flux-redux-dev",
+    requiresImage: true
+  },
+  { 
+    id: "photomaker", 
+    name: "PhotoMaker",
+    replicateId: "tencentarc/photomaker:ddfc2b08d209f9fa8c1eca692712918bd449f695dabb4a958da31802a9570fe4",
+    requiresImage: true
+  },
+  { 
+    id: "photomaker-style", 
+    name: "PhotoMaker Style",
+    replicateId: "tencentarc/photomaker-style:467d062309da518648ba89d226490e02b8ed09b5abc15026e54e31c5a8cd0769",
+    requiresImage: true
+  },
+  { 
+    id: "instant-id", 
+    name: "InstantID",
+    replicateId: "zsxkib/instant-id:2e4785a4d80dadf580077b2244c8d7c05d8e3faac04a04c02d8e099dd2876789",
     requiresImage: true
   },
   { 
@@ -26,6 +45,7 @@ const MODELS = [
     name: "SDXL",
     replicateId: "stability-ai/sdxl:7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc"
   },
+  // Text-to-image models
   { 
     id: "animagine-xl-31", 
     name: "Animagine XL 3.1",

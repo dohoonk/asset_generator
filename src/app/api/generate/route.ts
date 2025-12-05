@@ -37,25 +37,54 @@ export async function POST(request: NextRequest) {
     const isFluxRedux = model.replicateId.includes("flux-redux");
     const isFluxModel = model.replicateId.startsWith("black-forest-labs/flux") && !isFluxRedux;
     const isSDXLModel = model.replicateId.startsWith("stability-ai/sdxl");
-    const isAnimagineModel = model.replicateId.includes("animagine");
+    const isPhotoMaker = model.replicateId.includes("photomaker");
+    const isPhotoMakerStyle = model.replicateId.includes("photomaker-style");
+    const isInstantID = model.replicateId.includes("instant-id");
 
     // Build the input based on the model
     const input: Record<string, unknown> = {};
 
+    // Check if model requires image but none provided
+    if (model.supportsImage && !referenceImage && (isFluxRedux || isPhotoMaker || isInstantID)) {
+      return NextResponse.json(
+        { error: `${model.name} requires a reference image. Please upload a character image.` },
+        { status: 400 }
+      );
+    }
+
     if (isFluxRedux && referenceImage) {
-      // Flux Redux: Character reference mode - preserves character features
-      // Note: Flux Redux uses "redux_image" not "image"
+      // Flux Redux: Image variations - preserves character features
       input.redux_image = referenceImage;
       input.prompt = `${ANIME_PROMPT_PREFIX}same character, ${prompt}`;
       input.num_outputs = Math.min(numOutputs, 4);
-      input.guidance = 3; // Lower guidance keeps more of original character
+      input.guidance = 3;
       input.aspect_ratio = width === height ? "1:1" : width > height ? "16:9" : "9:16";
-    } else if (isFluxRedux && !referenceImage) {
-      // Flux Redux requires an image - fallback error
-      return NextResponse.json(
-        { error: "Flux Redux requires a reference image. Please upload a character image." },
-        { status: 400 }
-      );
+    } else if (isPhotoMakerStyle && referenceImage) {
+      // PhotoMaker Style: Character + style transfer
+      input.input_image = referenceImage;
+      input.prompt = `img, ${ANIME_PROMPT_PREFIX}same person, ${prompt}`;
+      input.style_name = "Anime";
+      input.num_outputs = Math.min(numOutputs, 4);
+      input.num_steps = 50;
+      input.style_strength_ratio = 35;
+      input.guidance_scale = 5;
+      input.negative_prompt = ANIME_NEGATIVE_PROMPT;
+    } else if (isPhotoMaker && referenceImage) {
+      // PhotoMaker: Character identity consistency
+      input.input_image = referenceImage;
+      input.prompt = `img, ${ANIME_PROMPT_PREFIX}same person, ${prompt}`;
+      input.num_outputs = Math.min(numOutputs, 4);
+      input.num_steps = 50;
+      input.guidance_scale = 5;
+      input.negative_prompt = ANIME_NEGATIVE_PROMPT;
+    } else if (isInstantID && referenceImage) {
+      // InstantID: Realistic face/character consistency
+      input.image = referenceImage;
+      input.prompt = `${ANIME_PROMPT_PREFIX}same person, ${prompt}`;
+      input.num_outputs = Math.min(numOutputs, 4);
+      input.negative_prompt = ANIME_NEGATIVE_PROMPT;
+      input.ip_adapter_scale = 0.8;
+      input.guidance_scale = 5;
     } else if (isFluxModel) {
       // Regular Flux models use aspect_ratio instead of width/height
       input.prompt = `${ANIME_PROMPT_PREFIX}${prompt}`;
@@ -65,7 +94,7 @@ export async function POST(request: NextRequest) {
       // SDXL img2img mode for character reference
       input.prompt = `${ANIME_PROMPT_PREFIX}same character, consistent appearance, ${prompt}`;
       input.image = referenceImage;
-      input.prompt_strength = 0.7; // Keep some of original character
+      input.prompt_strength = 0.7;
       input.num_outputs = numOutputs;
       input.width = width;
       input.height = height;
@@ -88,18 +117,13 @@ export async function POST(request: NextRequest) {
     // Generate images
     const outputs: string[] = [];
     
-    // Check if model supports multiple outputs - Flux models support up to 4
-    const supportsMultipleOutputs = isFluxModel || isFluxRedux;
-    const maxBatchSize = supportsMultipleOutputs ? 4 : numOutputs;
+    // Most character reference models support up to 4 outputs
+    const maxBatchSize = 4;
     const batchCount = Math.ceil(numOutputs / maxBatchSize);
 
     for (let i = 0; i < batchCount; i++) {
       const batchSize = Math.min(maxBatchSize, numOutputs - outputs.length);
-      if (supportsMultipleOutputs) {
-        input.num_outputs = batchSize;
-      } else {
-        input.num_outputs = batchSize;
-      }
+      input.num_outputs = batchSize;
 
       try {
         const output = await replicate.run(model.replicateId as `${string}/${string}` | `${string}/${string}:${string}`, {

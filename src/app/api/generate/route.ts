@@ -33,60 +33,72 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build the input based on the model with anime-focused prompts
-    const input: Record<string, unknown> = {
-      prompt: `${ANIME_PROMPT_PREFIX}${prompt}`,
-      width,
-      height,
-    };
-
-    // Add negative prompt - combine user's with anime defaults
-    if (negativePrompt) {
-      input.negative_prompt = `${ANIME_NEGATIVE_PROMPT}, ${negativePrompt}`;
-    } else {
-      input.negative_prompt = ANIME_NEGATIVE_PROMPT;
-    }
-
-    // Add reference image if provided and model supports it
-    if (referenceImage && model.supportsImage) {
-      input.image = referenceImage;
-    }
-
-    // Handle different models' parameter names
-    const isFluxModel = model.replicateId.startsWith("black-forest-labs/flux");
+    // Determine model type
+    const isFluxRedux = model.replicateId.includes("flux-redux");
+    const isFluxModel = model.replicateId.startsWith("black-forest-labs/flux") && !isFluxRedux;
     const isSDXLModel = model.replicateId.startsWith("stability-ai/sdxl");
     const isAnimagineModel = model.replicateId.includes("animagine");
-    const isPlaygroundModel = model.replicateId.includes("playground");
-    
-    if (isFluxModel) {
-      // Flux models use aspect_ratio instead of width/height
+
+    // Build the input based on the model
+    const input: Record<string, unknown> = {};
+
+    if (isFluxRedux && referenceImage) {
+      // Flux Redux: Character reference mode - preserves character features
+      input.image = referenceImage;
+      input.prompt = `${ANIME_PROMPT_PREFIX}same character, ${prompt}`;
+      input.num_outputs = Math.min(numOutputs, 4);
+      input.guidance = 3; // Lower guidance keeps more of original character
+      input.aspect_ratio = width === height ? "1:1" : width > height ? "16:9" : "9:16";
+    } else if (isFluxRedux && !referenceImage) {
+      // Flux Redux requires an image - fallback error
+      return NextResponse.json(
+        { error: "Flux Redux requires a reference image. Please upload a character image." },
+        { status: 400 }
+      );
+    } else if (isFluxModel) {
+      // Regular Flux models use aspect_ratio instead of width/height
+      input.prompt = `${ANIME_PROMPT_PREFIX}${prompt}`;
       input.num_outputs = Math.min(numOutputs, 4);
       input.aspect_ratio = width === height ? "1:1" : width > height ? "16:9" : "9:16";
-      delete input.width;
-      delete input.height;
-      delete input.negative_prompt; // Flux doesn't support negative prompts
-    } else if (isAnimagineModel) {
-      // Animagine models - optimized for anime
+    } else if (isSDXLModel && referenceImage) {
+      // SDXL img2img mode for character reference
+      input.prompt = `${ANIME_PROMPT_PREFIX}same character, consistent appearance, ${prompt}`;
+      input.image = referenceImage;
+      input.prompt_strength = 0.7; // Keep some of original character
       input.num_outputs = numOutputs;
-      // Animagine works best with these specific quality tags already in prompt
-    } else if (isSDXLModel || isPlaygroundModel) {
-      // SDXL and Playground models
-      input.num_outputs = numOutputs;
+      input.width = width;
+      input.height = height;
+      input.negative_prompt = `${ANIME_NEGATIVE_PROMPT}, ${negativePrompt || ""}`;
     } else {
-      // Default handling for other models
+      // Standard text-to-image mode
+      input.prompt = `${ANIME_PROMPT_PREFIX}${prompt}`;
+      input.width = width;
+      input.height = height;
       input.num_outputs = numOutputs;
+      
+      // Add negative prompt for non-Flux models
+      if (negativePrompt) {
+        input.negative_prompt = `${ANIME_NEGATIVE_PROMPT}, ${negativePrompt}`;
+      } else {
+        input.negative_prompt = ANIME_NEGATIVE_PROMPT;
+      }
     }
 
     // Generate images
     const outputs: string[] = [];
     
-    // Check if model supports multiple outputs - Flux supports up to 4
-    const maxBatchSize = isFluxModel ? 4 : numOutputs;
+    // Check if model supports multiple outputs - Flux models support up to 4
+    const supportsMultipleOutputs = isFluxModel || isFluxRedux;
+    const maxBatchSize = supportsMultipleOutputs ? 4 : numOutputs;
     const batchCount = Math.ceil(numOutputs / maxBatchSize);
 
     for (let i = 0; i < batchCount; i++) {
       const batchSize = Math.min(maxBatchSize, numOutputs - outputs.length);
-      input.num_outputs = batchSize;
+      if (supportsMultipleOutputs) {
+        input.num_outputs = batchSize;
+      } else {
+        input.num_outputs = batchSize;
+      }
 
       try {
         const output = await replicate.run(model.replicateId as `${string}/${string}` | `${string}/${string}:${string}`, {

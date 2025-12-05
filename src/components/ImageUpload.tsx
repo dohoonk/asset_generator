@@ -54,8 +54,11 @@ export default function ImageUpload({ image, onImageChange }: ImageUploadProps) 
   return (
     <div>
       <label className="block text-sm font-semibold text-[var(--foreground)] mb-2">
-        Reference Image <span className="font-normal text-[var(--muted)]">(optional)</span>
+        Character Reference <span className="font-normal text-[var(--muted)]">(for consistency)</span>
       </label>
+      <p className="text-xs text-[var(--muted)] mb-2">
+        Upload your character to generate consistent assets. Use with &quot;Flux Redux&quot; or &quot;SDXL&quot; models.
+      </p>
 
       {!image ? (
         <div
@@ -69,9 +72,9 @@ export default function ImageUpload({ image, onImageChange }: ImageUploadProps) 
               : "border-[var(--border)] hover:border-[var(--primary)] hover:bg-[var(--surface-hover)]"
           }`}
         >
-          <div className="text-3xl mb-2">📷</div>
+          <div className="text-3xl mb-2">🎭</div>
           <div className="text-sm text-[var(--muted)]">
-            Drop an image or click to upload
+            Drop character image or click to upload
           </div>
           <div className="text-xs text-[var(--muted)] mt-1">
             PNG, JPG up to 10MB

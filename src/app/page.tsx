@@ -18,6 +18,7 @@ export default function Home() {
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [dimension, setDimension] = useState<Dimension>(DIMENSIONS[0]); // 1:1 Square default
   const [batchCount, setBatchCount] = useState(1);
+  const [removeBackground, setRemoveBackground] = useState(false);
 
   // Generation state
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +51,7 @@ export default function Home() {
           width: dimension.width,
           height: dimension.height,
           numOutputs: batchCount,
+          removeBackground,
         }),
       });
 
@@ -85,7 +87,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedModel, prompt, negativePrompt, referenceImage, dimension, batchCount]);
+  }, [selectedModel, prompt, negativePrompt, referenceImage, dimension, batchCount, removeBackground]);
 
   const handleSelectBatch = (batch: HistoryBatch) => {
     setCurrentImages(batch.images);
@@ -151,8 +153,10 @@ export default function Home() {
               <OptionsSelector
                 dimension={dimension}
                 batchCount={batchCount}
+                removeBackground={removeBackground}
                 onDimensionChange={setDimension}
                 onBatchCountChange={setBatchCount}
+                onRemoveBackgroundChange={setRemoveBackground}
               />
             </div>
 

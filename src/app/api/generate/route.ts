@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Replicate from "replicate";
-import { MODELS, ANIME_PROMPT_PREFIX, ANIME_NEGATIVE_PROMPT } from "@/types";
+import { MODELS, ANIME_PROMPT_PREFIX, ANIME_NEGATIVE_PROMPT, REMOVE_BG_MODEL } from "@/types";
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_KEY,
@@ -9,7 +9,7 @@ const replicate = new Replicate({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { modelId, prompt, negativePrompt, referenceImage, width, height, numOutputs } = body;
+    const { modelId, prompt, negativePrompt, referenceImage, width, height, numOutputs, removeBackground } = body;
 
     if (!process.env.REPLICATE_API_KEY) {
       return NextResponse.json(
@@ -174,8 +174,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Remove background if requested
+    let finalOutputs = outputs.slice(0, numOutputs);
+    if (removeBackground) {
+      const bgRemovedOutputs: string[] = [];
+      for (const imageUrl of finalOutputs) {
+        try {
+          const bgRemoved = await replicate.run(
+            REMOVE_BG_MODEL as `${string}/${string}:${string}`,
+            { input: { image: imageUrl } }
+          );
+          if (typeof bgRemoved === "string") {
+            bgRemovedOutputs.push(bgRemoved);
+          } else if (bgRemoved && typeof bgRemoved === "object" && "url" in bgRemoved) {
+            bgRemovedOutputs.push((bgRemoved as { url: string }).url);
+          } else {
+            bgRemovedOutputs.push(String(bgRemoved));
+          }
+        } catch (bgError) {
+          console.error("Background removal failed:", bgError instanceof Error ? bgError.message : "Unknown error");
+          // Keep original if bg removal fails
+          bgRemovedOutputs.push(imageUrl);
+        }
+      }
+      finalOutputs = bgRemovedOutputs;
+    }
+
     return NextResponse.json({
-      images: outputs.slice(0, numOutputs),
+      images: finalOutputs,
       model: model.name,
     });
   } catch (error) {

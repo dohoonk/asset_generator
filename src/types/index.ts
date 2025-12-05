@@ -16,7 +16,11 @@ export interface GenerationRequest {
   width: number;
   height: number;
   numOutputs: number;
+  removeBackground?: boolean;
 }
+
+// Background removal model
+export const REMOVE_BG_MODEL = "lucataco/remove-bg:95fcc2a26d3899cd6c2691c900465aaeff466285a65c14638cc5f36f34befaf1";
 
 export interface GeneratedImage {
   id: string;

@@ -16,7 +16,7 @@ export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [negativePrompt, setNegativePrompt] = useState("");
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
-  const [dimension, setDimension] = useState<Dimension>(DIMENSIONS[3]); // 1024x1024 default
+  const [dimension, setDimension] = useState<Dimension>(DIMENSIONS[0]); // 1:1 Square default
   const [batchCount, setBatchCount] = useState(1);
 
   // Generation state

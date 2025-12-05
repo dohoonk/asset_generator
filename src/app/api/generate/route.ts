@@ -44,7 +44,8 @@ export async function POST(request: NextRequest) {
 
     if (isFluxRedux && referenceImage) {
       // Flux Redux: Character reference mode - preserves character features
-      input.image = referenceImage;
+      // Note: Flux Redux uses "redux_image" not "image"
+      input.redux_image = referenceImage;
       input.prompt = `${ANIME_PROMPT_PREFIX}same character, ${prompt}`;
       input.num_outputs = Math.min(numOutputs, 4);
       input.guidance = 3; // Lower guidance keeps more of original character

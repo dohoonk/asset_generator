@@ -133,16 +133,24 @@ export async function POST(request: NextRequest) {
         });
 
         if (Array.isArray(output)) {
-          outputs.push(...output.map((o) => (typeof o === "string" ? o : String(o))));
+          // Handle array of FileOutput objects or strings
+          outputs.push(...output.map((o) => {
+            if (typeof o === "string") return o;
+            if (o && typeof o === "object" && typeof (o as { url?: () => URL }).url === "function") {
+              const urlObj = (o as { url: () => URL }).url();
+              return urlObj.href || urlObj.toString();
+            }
+            return String(o);
+          }));
         } else if (typeof output === "string") {
           outputs.push(output);
         } else if (output && typeof output === "object") {
-          // Handle ReadableStream or other output types
-          const result = output as { url?: string } | string[];
-          if (Array.isArray(result)) {
-            outputs.push(...result);
-          } else if ("url" in result && result.url) {
-            outputs.push(result.url);
+          // Handle single FileOutput or other output types
+          if (typeof (output as { url?: () => URL }).url === "function") {
+            const urlObj = (output as { url: () => URL }).url();
+            outputs.push(urlObj.href || urlObj.toString());
+          } else {
+            outputs.push(String(output));
           }
         }
       } catch (modelError) {
@@ -184,10 +192,12 @@ export async function POST(request: NextRequest) {
             REMOVE_BG_MODEL as `${string}/${string}:${string}`,
             { input: { image: imageUrl } }
           );
-          if (typeof bgRemoved === "string") {
+          // Handle FileOutput objects from Replicate
+          if (bgRemoved && typeof bgRemoved === "object" && typeof (bgRemoved as { url?: () => URL }).url === "function") {
+            const urlObj = (bgRemoved as { url: () => URL }).url();
+            bgRemovedOutputs.push(urlObj.href || urlObj.toString());
+          } else if (typeof bgRemoved === "string") {
             bgRemovedOutputs.push(bgRemoved);
-          } else if (bgRemoved && typeof bgRemoved === "object" && "url" in bgRemoved) {
-            bgRemovedOutputs.push((bgRemoved as { url: string }).url);
           } else {
             bgRemovedOutputs.push(String(bgRemoved));
           }

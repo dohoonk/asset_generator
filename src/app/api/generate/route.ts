@@ -80,6 +80,11 @@ export async function POST(request: NextRequest) {
       input.num_outputs = Math.min(numOutputs, 4);
       input.guidance = 3;
       input.aspect_ratio = width === height ? "1:1" : width > height ? "16:9" : "9:16";
+      if (isBackground) {
+        input.negative_prompt = negativePrompt
+          ? `${ANIME_NEGATIVE_PROMPT}, person, people, character, face, portrait, human, ${negativePrompt}`
+          : `${ANIME_NEGATIVE_PROMPT}, person, people, character, face, portrait, human`;
+      }
     } else if (isPhotoMakerStyle && referenceImage) {
       // PhotoMaker Style: Character + style transfer
       // Valid styles: "(No style)", "Cinematic", "Disney Charactor", "Digital Art", 
@@ -129,7 +134,9 @@ export async function POST(request: NextRequest) {
       input.num_outputs = Math.min(numOutputs, 4);
       input.aspect_ratio = width === height ? "1:1" : width > height ? "16:9" : "9:16";
       if (isBackground) {
-        input.negative_prompt = `${ANIME_NEGATIVE_PROMPT}, person, character, face, portrait`;
+        input.negative_prompt = negativePrompt
+          ? `${ANIME_NEGATIVE_PROMPT}, person, people, character, face, portrait, human, ${negativePrompt}`
+          : `${ANIME_NEGATIVE_PROMPT}, person, people, character, face, portrait, human`;
       }
     } else if (isSDXLModel && referenceImage) {
       // SDXL img2img mode for character reference
@@ -156,11 +163,11 @@ export async function POST(request: NextRequest) {
       // Add negative prompt for non-Flux models
       if (negativePrompt) {
         input.negative_prompt = isBackground
-          ? `${ANIME_NEGATIVE_PROMPT}, person, character, face, portrait, ${negativePrompt}`
+          ? `${ANIME_NEGATIVE_PROMPT}, person, people, character, face, portrait, human, ${negativePrompt}`
           : `${ANIME_NEGATIVE_PROMPT}, ${negativePrompt}`;
       } else {
         input.negative_prompt = isBackground
-          ? `${ANIME_NEGATIVE_PROMPT}, person, character, face, portrait`
+          ? `${ANIME_NEGATIVE_PROMPT}, person, people, character, face, portrait, human`
           : ANIME_NEGATIVE_PROMPT;
       }
     }

@@ -8,6 +8,8 @@ export interface Model {
   supportsImage: boolean;
 }
 
+export type GenerationType = "character" | "background";
+
 export interface GenerationRequest {
   modelId: string;
   prompt: string;
@@ -17,6 +19,7 @@ export interface GenerationRequest {
   height: number;
   numOutputs: number;
   removeBackground?: boolean;
+  generationType?: GenerationType;
 }
 
 // Background removal model

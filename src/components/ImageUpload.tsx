@@ -2,12 +2,15 @@
 
 import { useRef, useState } from "react";
 
+type UploadMode = "character" | "background";
+
 interface ImageUploadProps {
   image: string | null;
   onImageChange: (image: string | null) => void;
+  mode: UploadMode;
 }
 
-export default function ImageUpload({ image, onImageChange }: ImageUploadProps) {
+export default function ImageUpload({ image, onImageChange, mode }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,10 +57,22 @@ export default function ImageUpload({ image, onImageChange }: ImageUploadProps) 
   return (
     <div>
       <label className="block text-sm font-semibold text-[var(--foreground)] mb-2">
-        Character Reference <span className="font-normal text-[var(--muted)]">(for consistency)</span>
+        {mode === "character" ? (
+          <>
+            Character Reference{" "}
+            <span className="font-normal text-[var(--muted)]">(for consistency)</span>
+          </>
+        ) : (
+          <>
+            Background Reference{" "}
+            <span className="font-normal text-[var(--muted)]">(optional style/scene guide)</span>
+          </>
+        )}
       </label>
       <p className="text-xs text-[var(--muted)] mb-2">
-        Upload your character to generate consistent assets. Use with &quot;Flux Redux&quot; or &quot;SDXL&quot; models.
+        {mode === "character"
+          ? 'Upload your character to generate consistent assets. Use with "Flux Redux" or "SDXL" models.'
+          : "Upload a scene or style reference. Backgrounds keep their context; no background removal is applied."}
       </p>
 
       {!image ? (

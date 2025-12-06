@@ -6,6 +6,7 @@ interface OptionsSelectorProps {
   dimension: Dimension;
   batchCount: number;
   removeBackground: boolean;
+  showRemoveBackground: boolean;
   onDimensionChange: (dimension: Dimension) => void;
   onBatchCountChange: (count: number) => void;
   onRemoveBackgroundChange: (remove: boolean) => void;
@@ -15,6 +16,7 @@ export default function OptionsSelector({
   dimension,
   batchCount,
   removeBackground,
+  showRemoveBackground,
   onDimensionChange,
   onBatchCountChange,
   onRemoveBackgroundChange,
@@ -73,29 +75,30 @@ export default function OptionsSelector({
         </div>
       </div>
 
-      {/* Remove Background Toggle */}
-      <div className="flex items-center justify-between p-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl">
-        <div>
-          <label className="text-sm font-semibold text-[var(--foreground)]">
-            Remove Background
-          </label>
-          <p className="text-xs text-[var(--muted)]">
-            Transparent PNG for game sprites
-          </p>
-        </div>
-        <button
-          onClick={() => onRemoveBackgroundChange(!removeBackground)}
-          className={`relative w-12 h-6 rounded-full transition-colors ${
-            removeBackground ? "bg-[var(--primary)]" : "bg-[var(--border)]"
-          }`}
-        >
-          <span
-            className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-              removeBackground ? "translate-x-7" : "translate-x-1"
+      {showRemoveBackground && (
+        <div className="flex items-center justify-between p-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl">
+          <div>
+            <label className="text-sm font-semibold text-[var(--foreground)]">
+              Remove Background
+            </label>
+            <p className="text-xs text-[var(--muted)]">
+              Transparent PNG for character sprites
+            </p>
+          </div>
+          <button
+            onClick={() => onRemoveBackgroundChange(!removeBackground)}
+            className={`relative w-12 h-6 rounded-full transition-colors ${
+              removeBackground ? "bg-[var(--primary)]" : "bg-[var(--border)]"
             }`}
-          />
-        </button>
-      </div>
+          >
+            <span
+              className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                removeBackground ? "translate-x-7" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

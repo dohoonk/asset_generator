@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Model, Dimension, GeneratedImage, HistoryBatch, MODELS, DIMENSIONS } from "@/types";
+import {
+  Model,
+  Dimension,
+  GeneratedImage,
+  HistoryBatch,
+  GenerationType,
+  MODELS,
+  DIMENSIONS,
+} from "@/types";
 import ModelSelector from "@/components/ModelSelector";
 import PromptInput from "@/components/PromptInput";
 import ImageUpload from "@/components/ImageUpload";
@@ -18,7 +26,8 @@ export default function Home() {
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [dimension, setDimension] = useState<Dimension>(DIMENSIONS[0]); // 1:1 Square default
   const [batchCount, setBatchCount] = useState(1);
-  const [removeBackground, setRemoveBackground] = useState(false);
+  const [removeBackground, setRemoveBackground] = useState(true);
+  const [generationType, setGenerationType] = useState<GenerationType>("character");
 
   // Generation state
   const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +60,8 @@ export default function Home() {
           width: dimension.width,
           height: dimension.height,
           numOutputs: batchCount,
-          removeBackground,
+          removeBackground: generationType === "character" ? removeBackground : false,
+          generationType,
         }),
       });
 
@@ -87,13 +97,29 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedModel, prompt, negativePrompt, referenceImage, dimension, batchCount, removeBackground]);
+  }, [selectedModel, prompt, negativePrompt, referenceImage, dimension, batchCount, removeBackground, generationType]);
 
   const handleSelectBatch = (batch: HistoryBatch) => {
     setCurrentImages(batch.images);
   };
 
   const canGenerate = prompt.trim().length > 0;
+
+  const handleGenerationTypeChange = (type: GenerationType) => {
+    setGenerationType(type);
+
+    if (type === "background") {
+      setRemoveBackground(false);
+      // Backgrounds are usually landscape; nudge to a wide aspect if still square
+      if (dimension.label === DIMENSIONS[0].label) {
+        setDimension(DIMENSIONS[1]);
+      }
+    } else {
+      // Characters default to square for sprites
+      setDimension(DIMENSIONS[0]);
+      setRemoveBackground(true);
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -138,6 +164,32 @@ export default function Home() {
               onSelect={setSelectedModel}
             />
 
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-[var(--foreground)]">
+                What are you generating?
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {(["character", "background"] as GenerationType[]).map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => handleGenerationTypeChange(type)}
+                    className={`px-4 py-3 rounded-xl border text-left transition-all ${
+                      generationType === type
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--foreground)]"
+                        : "border-[var(--border)] hover:border-[var(--primary)]/60 text-[var(--muted)]"
+                    }`}
+                  >
+                    <div className="font-semibold capitalize">{type}</div>
+                    <div className="text-xs text-[var(--muted)]">
+                      {type === "character"
+                        ? "Upload a reference and get transparent sprites."
+                        : "Generate full background scenes. Keeps the environment."}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <PromptInput
               prompt={prompt}
               negativePrompt={negativePrompt}
@@ -149,11 +201,13 @@ export default function Home() {
               <ImageUpload
                 image={referenceImage}
                 onImageChange={setReferenceImage}
+                mode={generationType}
               />
               <OptionsSelector
                 dimension={dimension}
                 batchCount={batchCount}
                 removeBackground={removeBackground}
+                showRemoveBackground={generationType === "character"}
                 onDimensionChange={setDimension}
                 onBatchCountChange={setBatchCount}
                 onRemoveBackgroundChange={setRemoveBackground}

@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Model, MODELS } from "@/types";
+import { Model } from "@/types";
 
 interface ModelSelectorProps {
   selectedModel: Model;
   onSelect: (model: Model) => void;
+  models: Model[];
 }
 
-export default function ModelSelector({ selectedModel, onSelect }: ModelSelectorProps) {
+export default function ModelSelector({ selectedModel, onSelect, models }: ModelSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredModel, setHoveredModel] = useState<Model | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -65,7 +66,7 @@ export default function ModelSelector({ selectedModel, onSelect }: ModelSelector
       {isOpen && (
         <div className="absolute z-50 w-full mt-2 bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-lg overflow-hidden animate-fade-in">
           <div className="max-h-80 overflow-y-auto">
-            {MODELS.map((model) => (
+            {models.map((model) => (
               <button
                 key={model.id}
                 onClick={() => {

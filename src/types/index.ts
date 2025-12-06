@@ -6,6 +6,7 @@ export interface Model {
   style: string;
   speed: "fast" | "medium" | "slow";
   supportsImage: boolean;
+  supportsBackground?: boolean;
 }
 
 export type GenerationType = "character" | "background";
@@ -59,6 +60,7 @@ export const MODELS: Model[] = [
     style: "Character Reference",
     speed: "medium",
     supportsImage: true,
+    supportsBackground: false,
   },
   {
     id: "photomaker",
@@ -68,6 +70,7 @@ export const MODELS: Model[] = [
     style: "Character Reference",
     speed: "medium",
     supportsImage: true,
+    supportsBackground: false,
   },
   {
     id: "photomaker-style",
@@ -77,6 +80,7 @@ export const MODELS: Model[] = [
     style: "Character + Style",
     speed: "medium",
     supportsImage: true,
+    supportsBackground: false,
   },
   {
     id: "instant-id",
@@ -86,6 +90,7 @@ export const MODELS: Model[] = [
     style: "Face Reference",
     speed: "medium",
     supportsImage: true,
+    supportsBackground: false,
   },
   {
     id: "sdxl",
@@ -95,6 +100,7 @@ export const MODELS: Model[] = [
     style: "Versatile",
     speed: "medium",
     supportsImage: true,
+    supportsBackground: true,
   },
   // === ANIME SPECIFIC MODELS (Text to Image) ===
   {
@@ -105,6 +111,7 @@ export const MODELS: Model[] = [
     style: "Modern Anime",
     speed: "medium",
     supportsImage: false,
+    supportsBackground: true,
   },
   {
     id: "anything-v4",
@@ -114,6 +121,7 @@ export const MODELS: Model[] = [
     style: "Classic Anime",
     speed: "fast",
     supportsImage: false,
+    supportsBackground: true,
   },
   {
     id: "dreamshaper-xl",
@@ -123,6 +131,7 @@ export const MODELS: Model[] = [
     style: "Fantasy Anime",
     speed: "fast",
     supportsImage: false,
+    supportsBackground: true,
   },
   // === FLUX MODELS (Fast & Versatile) ===
   {
@@ -133,6 +142,7 @@ export const MODELS: Model[] = [
     style: "Versatile",
     speed: "fast",
     supportsImage: false,
+    supportsBackground: true,
   },
   {
     id: "flux-dev",
@@ -142,6 +152,7 @@ export const MODELS: Model[] = [
     style: "Versatile",
     speed: "medium",
     supportsImage: false,
+    supportsBackground: true,
   },
 ];
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   Model,
   Dimension,
@@ -28,6 +28,13 @@ export default function Home() {
   const [batchCount, setBatchCount] = useState(1);
   const [removeBackground, setRemoveBackground] = useState(true);
   const [generationType, setGenerationType] = useState<GenerationType>("character");
+  const availableModels = useMemo(
+    () =>
+      generationType === "background"
+        ? MODELS.filter((m) => m.supportsBackground !== false)
+        : MODELS,
+    [generationType]
+  );
 
   // Generation state
   const [isLoading, setIsLoading] = useState(false);
@@ -121,6 +128,15 @@ export default function Home() {
     }
   };
 
+  // Keep selected model valid for the chosen generation type
+  useEffect(() => {
+    if (availableModels.length === 0) return;
+    const stillValid = availableModels.some((model) => model.id === selectedModel.id);
+    if (!stillValid) {
+      setSelectedModel(availableModels[0]);
+    }
+  }, [availableModels, selectedModel.id]);
+
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -162,6 +178,7 @@ export default function Home() {
             <ModelSelector
               selectedModel={selectedModel}
               onSelect={setSelectedModel}
+              models={availableModels}
             />
 
             <div className="flex flex-col gap-2">

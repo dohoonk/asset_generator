@@ -174,7 +174,7 @@ export default function Home() {
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="space-y-6">
           {/* Generation Form */}
-          <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6 space-y-6 shadow-sm">
+          <div className="glass-card rounded-2xl border border-[var(--border)] p-6 space-y-6 soft-shadow">
             <ModelSelector
               selectedModel={selectedModel}
               onSelect={setSelectedModel}
@@ -182,8 +182,8 @@ export default function Home() {
             />
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-[var(--foreground)]">
-                What are you generating?
+              <label className="section-heading text-sm">
+                <span className="text-lg">🎯</span> What are you generating?
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {(["character", "background"] as GenerationType[]).map((type) => (
@@ -196,7 +196,10 @@ export default function Home() {
                         : "border-[var(--border)] hover:border-[var(--primary)]/60 text-[var(--muted)]"
                     }`}
                   >
-                    <div className="font-semibold capitalize">{type}</div>
+                    <div className="font-semibold capitalize flex items-center gap-2">
+                      <span>{type === "character" ? "👤" : "🏞️"}</span>
+                      {type}
+                    </div>
                     <div className="text-xs text-[var(--muted)]">
                       {type === "character"
                         ? "Upload a reference and get transparent sprites."
@@ -245,7 +248,7 @@ export default function Home() {
           </div>
 
           {/* Results */}
-          <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6 shadow-sm">
+          <div className="glass-card rounded-2xl border border-[var(--border)] p-6 soft-shadow">
             <ResultsGrid
               images={currentImages}
               isLoading={isLoading}

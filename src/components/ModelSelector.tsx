@@ -50,7 +50,9 @@ export default function ModelSelector({ selectedModel, onSelect, models }: Model
           <span className="text-2xl">🎨</span>
           <div>
             <div className="font-medium">{selectedModel.name}</div>
-            <div className="text-sm text-[var(--muted)]">{selectedModel.style}</div>
+            <div className="text-xs text-[var(--muted)] flex items-center gap-2">
+              <span className="pill tag-muted">{selectedModel.style}</span>
+            </div>
           </div>
         </div>
         <svg
@@ -82,7 +84,14 @@ export default function ModelSelector({ selectedModel, onSelect, models }: Model
                 <div className="flex items-center gap-3">
                   <div>
                     <div className="font-medium">{model.name}</div>
-                    <div className="text-sm text-[var(--muted)]">{model.style}</div>
+                    <div className="text-xs text-[var(--muted)] flex items-center gap-2 mt-0.5">
+                      <span className="pill tag-muted">{model.style}</span>
+                      {model.supportsImage && (
+                        <span className="pill text-[var(--primary)] border-[var(--primary)]/40 bg-[var(--primary)]/10">
+                          Image input
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <span className={`text-xs px-2 py-1 rounded-full ${getSpeedColor(model.speed)}`}>

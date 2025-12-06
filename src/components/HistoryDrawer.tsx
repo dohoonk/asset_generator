@@ -32,7 +32,7 @@ export default function HistoryDrawer({
 
       {/* Drawer */}
       <div className="fixed right-0 top-0 bottom-0 z-50 w-80 bg-[var(--surface)] shadow-xl drawer-enter">
-        <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
+        <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-gradient-to-r from-[var(--primary)]/10 via-[var(--secondary)]/10 to-[var(--accent)]/10">
           <h2 className="text-lg font-semibold">Session History</h2>
           <button
             onClick={onClose}

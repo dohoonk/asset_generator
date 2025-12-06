@@ -31,7 +31,8 @@ export default function PromptInput({
   return (
     <div className="space-y-3">
       <div>
-        <label className="block text-sm font-semibold text-[var(--foreground)] mb-2">
+        <label className="section-heading text-sm mb-2">
+          <span className="text-lg">📝</span>
           Describe your image
         </label>
         <textarea
@@ -42,14 +43,14 @@ export default function PromptInput({
           maxLength={2000}
         />
         <div className="flex justify-between items-center mt-1">
-          <div className="flex gap-1 flex-wrap">
+          <div className="flex gap-2 flex-wrap">
             {examplePrompts.slice(0, 2).map((example, i) => (
               <button
                 key={i}
                 onClick={() => insertExample(example)}
-                className="text-xs text-[var(--primary)] hover:text-[var(--primary-hover)] hover:underline"
+                className="pill text-xs hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
               >
-                Example {i + 1}
+                <span>✨</span> Example {i + 1}
               </button>
             ))}
           </div>

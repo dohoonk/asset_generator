@@ -24,6 +24,11 @@ export async function POST(request: NextRequest) {
     const mode: GenerationType = generationType === "background" ? "background" : "character";
     const isBackground = mode === "background";
     const isCharacter = mode === "character";
+    const backgroundNegativeBase =
+      `${ANIME_NEGATIVE_PROMPT}, person, people, human, crowd, group, figure, body, character, face, portrait, selfie, humanoid, mannequin`;
+    const withBackgroundNegative = negativePrompt
+      ? `${backgroundNegativeBase}, ${negativePrompt}`
+      : backgroundNegativeBase;
 
     if (!process.env.REPLICATE_API_KEY) {
       return NextResponse.json(
@@ -75,15 +80,13 @@ export async function POST(request: NextRequest) {
       // Flux Redux: Image variations - preserves character features
       input.redux_image = referenceImage;
       input.prompt = isBackground
-        ? `${ANIME_PROMPT_PREFIX}background scene, coherent composition, ${prompt}`
+        ? `${ANIME_PROMPT_PREFIX}background scene, no people, no humans visible, coherent composition, ${prompt}`
         : `${ANIME_PROMPT_PREFIX}same character, ${prompt}`;
       input.num_outputs = Math.min(numOutputs, 4);
       input.guidance = 3;
       input.aspect_ratio = width === height ? "1:1" : width > height ? "16:9" : "9:16";
       if (isBackground) {
-        input.negative_prompt = negativePrompt
-          ? `${ANIME_NEGATIVE_PROMPT}, person, people, character, face, portrait, human, ${negativePrompt}`
-          : `${ANIME_NEGATIVE_PROMPT}, person, people, character, face, portrait, human`;
+        input.negative_prompt = withBackgroundNegative;
       }
     } else if (isPhotoMakerStyle && referenceImage) {
       // PhotoMaker Style: Character + style transfer
@@ -91,57 +94,48 @@ export async function POST(request: NextRequest) {
       // "Photographic (Default)", "Fantasy art", "Neonpunk", "Enhance", "Comic book", "Lowpoly", "Line art"
       input.input_image = referenceImage;
       input.prompt = isBackground
-        ? `img, ${ANIME_PROMPT_PREFIX}background scene, ${prompt}`
+        ? `img, ${ANIME_PROMPT_PREFIX}background scene, no people, no humans visible, ${prompt}`
         : `img, ${ANIME_PROMPT_PREFIX}same person, ${prompt}`;
       input.style_name = "Comic book"; // Closest to anime style
       input.num_outputs = Math.min(numOutputs, 4);
       input.num_steps = 50;
       input.style_strength_ratio = 35;
       input.guidance_scale = 5;
-      input.negative_prompt = ANIME_NEGATIVE_PROMPT;
-      if (isBackground) {
-        input.negative_prompt = `${ANIME_NEGATIVE_PROMPT}, person, character, face, portrait`;
-      }
+      input.negative_prompt = isBackground ? withBackgroundNegative : ANIME_NEGATIVE_PROMPT;
     } else if (isPhotoMaker && referenceImage) {
       // PhotoMaker: Character identity consistency
       input.input_image = referenceImage;
       input.prompt = isBackground
-        ? `img, ${ANIME_PROMPT_PREFIX}background scene, ${prompt}`
+        ? `img, ${ANIME_PROMPT_PREFIX}background scene, no people, no humans visible, ${prompt}`
         : `img, ${ANIME_PROMPT_PREFIX}same person, ${prompt}`;
       input.num_outputs = Math.min(numOutputs, 4);
       input.num_steps = 50;
       input.guidance_scale = 5;
-      input.negative_prompt = isBackground
-        ? `${ANIME_NEGATIVE_PROMPT}, person, character, face, portrait`
-        : ANIME_NEGATIVE_PROMPT;
+      input.negative_prompt = isBackground ? withBackgroundNegative : ANIME_NEGATIVE_PROMPT;
     } else if (isInstantID && referenceImage) {
       // InstantID: Realistic face/character consistency
       input.image = referenceImage;
       input.prompt = isBackground
-        ? `${ANIME_PROMPT_PREFIX}background scene, ${prompt}`
+        ? `${ANIME_PROMPT_PREFIX}background scene, no people, no humans visible, ${prompt}`
         : `${ANIME_PROMPT_PREFIX}same person, ${prompt}`;
       input.num_outputs = Math.min(numOutputs, 4);
-      input.negative_prompt = isBackground
-        ? `${ANIME_NEGATIVE_PROMPT}, person, character, face, portrait`
-        : ANIME_NEGATIVE_PROMPT;
+      input.negative_prompt = isBackground ? withBackgroundNegative : ANIME_NEGATIVE_PROMPT;
       input.ip_adapter_scale = 0.8;
       input.guidance_scale = 5;
     } else if (isFluxModel) {
       // Regular Flux models use aspect_ratio instead of width/height
       input.prompt = isBackground
-        ? `${ANIME_PROMPT_PREFIX}detailed background scene, ${prompt}`
+        ? `${ANIME_PROMPT_PREFIX}detailed background scene, no people, no humans visible, ${prompt}`
         : `${ANIME_PROMPT_PREFIX}${prompt}`;
       input.num_outputs = Math.min(numOutputs, 4);
       input.aspect_ratio = width === height ? "1:1" : width > height ? "16:9" : "9:16";
       if (isBackground) {
-        input.negative_prompt = negativePrompt
-          ? `${ANIME_NEGATIVE_PROMPT}, person, people, character, face, portrait, human, ${negativePrompt}`
-          : `${ANIME_NEGATIVE_PROMPT}, person, people, character, face, portrait, human`;
+        input.negative_prompt = withBackgroundNegative;
       }
     } else if (isSDXLModel && referenceImage) {
       // SDXL img2img mode for character reference
       input.prompt = isBackground
-        ? `${ANIME_PROMPT_PREFIX}consistent background scene, ${prompt}`
+        ? `${ANIME_PROMPT_PREFIX}consistent background scene, no people, no humans visible, ${prompt}`
         : `${ANIME_PROMPT_PREFIX}same character, consistent appearance, ${prompt}`;
       input.image = referenceImage;
       input.prompt_strength = 0.7;
@@ -149,27 +143,23 @@ export async function POST(request: NextRequest) {
       input.width = width;
       input.height = height;
       input.negative_prompt = isBackground
-        ? `${ANIME_NEGATIVE_PROMPT}, person, character, face, portrait, ${negativePrompt || ""}`
+        ? withBackgroundNegative
         : `${ANIME_NEGATIVE_PROMPT}, ${negativePrompt || ""}`;
     } else {
       // Standard text-to-image mode
       input.prompt = isBackground
-        ? `${ANIME_PROMPT_PREFIX}detailed background scene, ${prompt}`
+        ? `${ANIME_PROMPT_PREFIX}detailed background scene, no people, no humans visible, ${prompt}`
         : `${ANIME_PROMPT_PREFIX}${prompt}`;
       input.width = width;
       input.height = height;
       input.num_outputs = numOutputs;
       
       // Add negative prompt for non-Flux models
-      if (negativePrompt) {
-        input.negative_prompt = isBackground
-          ? `${ANIME_NEGATIVE_PROMPT}, person, people, character, face, portrait, human, ${negativePrompt}`
-          : `${ANIME_NEGATIVE_PROMPT}, ${negativePrompt}`;
-      } else {
-        input.negative_prompt = isBackground
-          ? `${ANIME_NEGATIVE_PROMPT}, person, people, character, face, portrait, human`
+      input.negative_prompt = isBackground
+        ? withBackgroundNegative
+        : negativePrompt
+          ? `${ANIME_NEGATIVE_PROMPT}, ${negativePrompt}`
           : ANIME_NEGATIVE_PROMPT;
-      }
     }
 
     // Generate images

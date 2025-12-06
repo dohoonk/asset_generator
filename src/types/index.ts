@@ -10,6 +10,7 @@ export interface Model {
 }
 
 export type GenerationType = "character" | "background";
+export type MusicGenerationType = "music";
 
 export interface GenerationRequest {
   modelId: string;
@@ -21,6 +22,21 @@ export interface GenerationRequest {
   numOutputs: number;
   removeBackground?: boolean;
   generationType?: GenerationType;
+}
+
+export interface MusicRequest {
+  prompt: string;
+  duration?: number;
+  modelId?: string;
+}
+
+export interface GeneratedTrack {
+  id: string;
+  url: string;
+  prompt: string;
+  modelName: string;
+  duration: number;
+  timestamp: number;
 }
 
 // Background removal model
@@ -153,6 +169,22 @@ export const MODELS: Model[] = [
     speed: "medium",
     supportsImage: false,
     supportsBackground: true,
+  },
+];
+
+export interface MusicModel {
+  id: string;
+  name: string;
+  replicateId: string;
+  description: string;
+}
+
+export const MUSIC_MODELS: MusicModel[] = [
+  {
+    id: "musicgen",
+    name: "MusicGen (instrumental)",
+    replicateId: process.env.REPLICATE_MUSIC_MODEL_ID || "meta/musicgen",
+    description: "Prompt-to-music, best for instrumental BG loops",
   },
 ];
 

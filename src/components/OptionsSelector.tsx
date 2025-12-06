@@ -87,13 +87,13 @@ export default function OptionsSelector({
           </div>
           <button
             onClick={() => onRemoveBackgroundChange(!removeBackground)}
-            className={`relative w-12 h-6 rounded-full transition-colors ${
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
               removeBackground ? "bg-[var(--primary)]" : "bg-[var(--border)]"
             }`}
           >
             <span
-              className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                removeBackground ? "translate-x-7" : "translate-x-1"
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${
+                removeBackground ? "translate-x-5" : "translate-x-1"
               }`}
             />
           </button>

@@ -20,6 +20,16 @@ export async function POST(request: NextRequest) {
     }
 
     const model = MUSIC_MODELS.find((m) => m.id === modelId) || MUSIC_MODELS[0];
+
+    if (!model.replicateId) {
+      return NextResponse.json(
+        {
+          error:
+            "No music model configured. Set REPLICATE_MUSIC_MODEL_ID to a valid Replicate music model (e.g., meta/musicgen) in your environment.",
+        },
+        { status: 500 }
+      );
+    }
     const seconds = Math.min(30, Math.max(5, Math.round(duration || 15)));
 
     const input: Record<string, unknown> = {
@@ -27,9 +37,12 @@ export async function POST(request: NextRequest) {
       duration: seconds,
     };
 
-    const output = await replicate.run(model.replicateId as `${string}/${string}` | `${string}/${string}:${string}`, {
-      input,
-    });
+    const output = await replicate.run(
+      model.replicateId as `${string}/${string}` | `${string}/${string}:${string}`,
+      {
+        input,
+      }
+    );
 
     const urls: string[] = [];
     if (Array.isArray(output)) {
@@ -68,6 +81,17 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Music generation error:", message);
+
+    if (message.includes("404") || message.toLowerCase().includes("not found")) {
+      return NextResponse.json(
+        {
+          error:
+            "The selected music model was not found on Replicate. Set REPLICATE_MUSIC_MODEL_ID to a valid music model (e.g., meta/musicgen or your own).",
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json({ error: "Failed to generate music. Please try again." }, { status: 500 });
   }
 }

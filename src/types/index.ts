@@ -184,7 +184,7 @@ export const MUSIC_MODELS: MusicModel[] = [
     id: "musicgen",
     name: "MusicGen (instrumental)",
     replicateId: process.env.REPLICATE_MUSIC_MODEL_ID || "meta/musicgen",
-    description: "Prompt-to-music, best for instrumental BG loops",
+    description: "Prompt-to-music, best for instrumental BG loops (default meta/musicgen).",
   },
 ];
 

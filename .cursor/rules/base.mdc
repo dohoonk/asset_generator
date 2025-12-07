@@ -1,0 +1,9 @@
+Description: Core working notes for Anime Asset Generator
+
+- Always read/update memory-bank/* at session start; keep activeContext/progress current after changes.
+- Framework: Next.js 16 (App Router) + React 19 + Tailwind v4; API routes under `src/app/api`.
+- Replicate usage: never log secrets; require `REPLICATE_API_KEY`; allow overriding music model via `REPLICATE_MUSIC_MODEL_ID`.
+- Respect model constraints: image batching capped at 4 per call; background removal uses `lucataco/remove-bg`.
+- UI is client-heavy; keep components client-safe and avoid server-only APIs in them.
+- When touching AI prompts, preserve anime prefix/negative prompt patterns from `src/types/index.ts`.
+

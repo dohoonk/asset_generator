@@ -32,10 +32,36 @@ export async function POST(request: NextRequest) {
     }
     const seconds = Math.min(30, Math.max(5, Math.round(duration || 15)));
 
+    const isMiniMax = model.replicateId.startsWith("minimax/music-1.5");
+    const basePrompt = prompt.trim();
+
+    let lyricsText = basePrompt;
+    if (isMiniMax) {
+      const len = lyricsText.length;
+      if (len < 10) {
+        return NextResponse.json(
+          {
+            error: "MiniMax requires lyrics between 10 and 300 characters. Please expand your prompt.",
+          },
+          { status: 400 }
+        );
+      }
+      if (len > 300) {
+        // Truncate to max allowed by MiniMax to avoid 422
+        lyricsText = lyricsText.slice(0, 300);
+      }
+    }
     const input: Record<string, unknown> = {
-      prompt: `${prompt.trim()}, instrumental background music, no vocals, seamless, loop-friendly`,
+      prompt: isMiniMax
+        ? `${lyricsText}, vocal track`
+        : `${basePrompt}, instrumental background music, no vocals, seamless, loop-friendly`,
       duration: seconds,
     };
+
+    // MiniMax music requires a lyrics field; map the user prompt to lyrics by default
+    if (isMiniMax) {
+      input.lyrics = lyricsText;
+    }
 
     const output = await replicate.run(
       model.replicateId as `${string}/${string}` | `${string}/${string}:${string}`,

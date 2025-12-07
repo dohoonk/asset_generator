@@ -186,6 +186,12 @@ export const MUSIC_MODELS: MusicModel[] = [
     replicateId: process.env.REPLICATE_MUSIC_MODEL_ID || "meta/musicgen",
     description: "Prompt-to-music, best for instrumental BG loops (default meta/musicgen).",
   },
+  {
+    id: "minimax-1-5",
+    name: "MiniMax Music 1.5",
+    replicateId: "minimax/music-1.5",
+    description: "MiniMax text-to-music (supports vocals when prompted).",
+  },
 ];
 
 // Anime-focused prompt enhancements
